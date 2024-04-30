@@ -67,3 +67,28 @@ def calc_needed_turnover(df):
     df["NEEDED_REALIZED_TURNOVER_TIME"] = df["REALIZED_TURNOVER_TIME"] + 60 - df["DELAY"]
 
     return df
+
+# split data into big and small delays (e.g. +/- 5 min)
+def df_subsets_big_small(df, delay = 300):
+  df_big_delay = df[df['DELAY'] > delay]
+  df_small_delay = df[df['DELAY'] <= delay]
+
+  return df_big_delay, df_small_delay
+
+# add column max 'MAX_DEPARTURE_TIME", which is max of 'REALIZED_DATETIME' and 'DEPARTURE_SIGNAL_SHOWS_SAFE'
+def add_max_departure_time(df):
+  df['MAX_DEPARTURE_TIME'] = df[['REALIZED_DATETIME', 'DEPARTURE_SIGNAL_SHOWS_SAFE']].max(axis=1)
+  return df
+
+# remove unnecessary rows with not relevant data or small amount of data
+def remove_unnecessary_rows(df):
+  # remove from ACTIVITY_TYPE == ('R_A, R_V, R'), because few occurences & not relevant
+  df = df[~df['ACTIVITYTYPE'].isin(['R_A', 'R_V', 'R'])]
+
+  # remove from TRAINSERIE_DIRECTION == ('NB, VB, VST'), because few occurences & not relevant
+  df = df[~df['TRAINSERIE_DIRECTION'].isin(['NB', 'VB', 'VST'])]
+
+  # remove from ROLLINGSTOCK_TYPE == ('MS'), because not relevant
+  df = df[~df['ROLLINGSTOCK_TYPE'].isin(['MS'])]
+
+  return df
