@@ -61,3 +61,9 @@ def calc_turnover_middle(df):
 
 def calc_turnover(df):
     return pd.concat([calc_turnover_middle(df), calc_turnover_end(df)])
+
+def calc_needed_turnover(df):
+    df["NEEDED_PLAN_TURNOVER_TIME"] = df["PLAN_TURNOVER_TIME"] + 60 - df["DELAY"]
+    df["NEEDED_REALIZED_TURNOVER_TIME"] = df["REALIZED_TURNOVER_TIME"] + 60 - df["DELAY"]
+
+    return df
