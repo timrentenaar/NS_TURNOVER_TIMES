@@ -92,3 +92,26 @@ def remove_unnecessary_rows(df):
   df = df[~df['ROLLINGSTOCK_TYPE'].isin(['MS'])]
 
   return df
+
+# Calulate how long each train had to wait on a green signal, then remove trains that had to wait more than 0 seconds
+def calculate_signal_safe_delay(df):
+    df["PLAN_SIGNAL_SAFE_DELAY"] = (df["DEPARTURE_SIGNAL_SHOWS_SAFE"] - df["PLAN_DATETIME"]).dt.total_seconds()
+    df["REALIZED_SIGNAL_SAFE_DELAY"] = (df["DEPARTURE_SIGNAL_SHOWS_SAFE"] - df["REALIZED_DATETIME"]).dt.total_seconds()
+    df = df.loc[df["PLAN_SIGNAL_SAFE_DELAY"] <= 0]
+
+    return df
+
+# Filter out rows which have extreme values of PLAN_TURNOVER_TIME and DELAY
+def filter_outliers(df):
+    df = df[(df["PLAN_TURNOVER_TIME"] >= 30) & (df["PLAN_TURNOVER_TIME"] <= 6000)]
+    df = df[(df["DELAY"] >= -600) & (df["DELAY"] <= 10000)]
+    
+    return df
+
+# WE CAN CHANGE THIS LATER IF WE WANT MORE INFOMRATION ABOUT THE COMBINING/SPLITTING PROCESS
+# Transform combine and split into binary columns
+def categorise_combine_spilt(df):
+   df['COMBINE'] = df['COMBINE'].notna().astype(int)
+   df['SPLIT'] = df['SPLIT'].notna().astype(int)
+   
+   return df
