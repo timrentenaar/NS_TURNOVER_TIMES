@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import datetime
 
 def set_types(df):
     df["DRIVER_CHANGE"] = df["DRIVER_CHANGE"].astype(str)
@@ -115,3 +116,41 @@ def categorise_combine_spilt(df):
    df['SPLIT'] = df['SPLIT'].notna().astype(int)
    
    return df
+
+# add category, if train is travelling in daluren, not-daluren
+def determine_daluren(df):
+  # daluren is dependant on day and time of day
+  temp = df.copy()
+  temp['DAY_IN_WEEK'] = temp['PLAN_DATETIME'].dt.dayofweek
+  temp['24-TIME'] = pd.to_datetime(temp['PLAN_DATETIME'], format='%I%M%p').dt.strftime('%H:%M')
+
+  # set type of 24-TIME to datetime
+  temp["24-TIME"] = pd.to_datetime(temp['24-TIME'])
+  
+  # define daluren times
+  time_0900 = datetime.time(9, 00, 0)
+  time_1600 = datetime.time(16, 00, 0)
+  time_1830 = datetime.time(18, 30, 0)
+  time_0630 = datetime.time(6, 30, 0)
+  time_0400 = datetime.time(4, 00, 0)
+
+  # determine whether time is in daluren or not
+  temp['DALUREN'] = temp.apply(lambda x: True 
+    if 
+      # maandag t/m vrijdag van 9.00 tot 16.00 uur
+      (x['24-TIME'].time() >= time_0900 and x['24-TIME'].time() <= time_1600 and x['DAY_IN_WEEK'] in [0,1,2,3,4])
+      # maandag t/m vrijdag van 18.30 tot 6.30 uur
+      or ((x['24-TIME'].time() >= time_1830 or x['24-TIME'].time() <= time_0630) and x['DAY_IN_WEEK'] in [0,1,2,3,4])
+      # vrijdagavond na 18.30 uur
+      or (x['24-TIME'].time() >= time_1830 and x['DAY_IN_WEEK'] == 4)
+      # zaterdag en zondag
+      or (x['DAY_IN_WEEK'] in [5,6])
+      # maandagochtend voor 4.00 uur
+      or (x['24-TIME'].time() < time_0400 and x['DAY_IN_WEEK'] == 0)
+    else False, 
+  axis=1)
+
+  # remove 24-Time and days-in-week columns
+  temp.drop(columns=['24-TIME', 'DAY_IN_WEEK'])
+
+  return temp
