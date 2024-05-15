@@ -154,3 +154,19 @@ def determine_daluren(df):
   temp.drop(columns=['24-TIME', 'DAY_IN_WEEK'])
 
   return temp
+
+def add_cat_diff_turnover_time(df):
+  working_df = df.copy()
+  # calculate difference in needed_plan_turnover_time and needed_realized_turnover_time
+  working_df['DIFF_TURNOVER_TIME'] =  working_df['PLAN_TURNOVER_TIME'] - working_df['REALIZED_TURNOVER_TIME'] 
+
+  # add category variable for DIFF_TURNOVER_TIME, depending on if it is positive, negative or zero
+  # 4 categories
+  diff_turnover_bins = [-np.inf, -60, 60, 180, np.inf]
+  diff_turnover_labels = ['too early', 'perfect', 'too late', 'past 3-minute mark']
+  working_df['DIFF_TURNOVER_TIME_CAT'] = pd.cut(working_df['DIFF_TURNOVER_TIME'], bins=diff_turnover_bins, labels=diff_turnover_labels)
+
+  return working_df
+
+def remove_past_3_min(df):
+  return df[df['DIFF_TURNOVER_TIME'] <= 180]
