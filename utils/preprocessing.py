@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import datetime
+import math
 
 def set_types(df):
     df["DRIVER_CHANGE"] = df["DRIVER_CHANGE"].astype(str)
@@ -151,9 +152,24 @@ def determine_daluren(df):
   axis=1)
 
   # remove 24-Time and days-in-week columns
-  temp.drop(columns=['24-TIME', 'DAY_IN_WEEK'])
+  temp.drop(columns=['24-TIME', 'DAY_IN_WEEK'], inplace=True)
 
   return temp
+
+def days_and_hours(df):
+    df["DAY_OF_WEEK"] = df["PLAN_DATETIME"].dt.dayofweek
+    df["HOUR"] = df["PLAN_DATETIME"].dt.hour
+
+    return df
+
+# Encodes variables that are cyclical (such as hours and days) into sin and cos components of a unit circle
+def cyclical_encoder(df, column):
+    max_val = df[column].max()
+
+    df[column + "_sin"] = df[column].apply(lambda x: math.sin(2 * math.pi * x / (max_val + 1)))
+    df[column + "_cos"] = df[column].apply(lambda x: math.cos(2 * math.pi * x / (max_val + 1)))
+
+    return df
 
 def add_cat_diff_turnover_time(df):
   working_df = df.copy()
