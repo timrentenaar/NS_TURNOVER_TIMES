@@ -4,12 +4,22 @@ import datetime
 import math
 
 def set_types(df):
-    df["DRIVER_CHANGE"] = df["DRIVER_CHANGE"].astype(str)
+    df["DRIVER_CHANGE"] = pd.to_numeric(df["DRIVER_CHANGE"], errors='coerce').astype('Int64')
     df['TRAINNUMBER'] = df['TRAINNUMBER'].astype(str)
     df['PREVIOUS_TRAINNUMBER'] = df['PREVIOUS_TRAINNUMBER'].astype(str)
     df["PLAN_DATETIME"] = pd.to_datetime(df['PLAN_DATETIME'])
     df["REALIZED_DATETIME"] = pd.to_datetime(df['REALIZED_DATETIME'])
     df["DEPARTURE_SIGNAL_SHOWS_SAFE"] = pd.to_datetime(df['DEPARTURE_SIGNAL_SHOWS_SAFE'])
+
+    return df
+
+def sort(df):
+    df = df.sort_values(by=['TRAFFIC_DATE', 'TRAINNUMBER','PLAN_DATETIME'], ignore_index=True)
+
+    return df
+
+def cum_distance(df):
+    df['CUM_DISTANCE_M'] = df.groupby(['TRAFFIC_DATE', 'TRAINNUMBER'])['DISTANCE_M'].cumsum()
 
     return df
 
@@ -39,6 +49,15 @@ def calc_turnover_end(df):
     # Set new turnover time columns
     filtered_df["PLAN_TURNOVER_TIME"] = plan_turnover_time
     filtered_df["REALIZED_TURNOVER_TIME"] = real_turnover_time
+
+    # Create a mapping of previous train's cumulative distance
+    previous_train_distances = df.groupby(['TRAFFIC_DATE', 'TRAINNUMBER', 'STATION'])['CUM_DISTANCE_M'].max()
+
+    # Set the cumulative distance column for the filtered DataFrame
+    filtered_df['CUM_DISTANCE_M'] = filtered_df.apply(
+        lambda row: previous_train_distances.get((row['TRAFFIC_DATE'], row['PREVIOUS_TRAINNUMBER'], row['STATION']), pd.NA),
+        axis=1
+    )
 
     return filtered_df
 
