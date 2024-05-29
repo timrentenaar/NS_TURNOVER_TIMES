@@ -3,6 +3,7 @@ import numpy as np
 import datetime
 import math
 
+# change types in df
 def set_types(df):
     df["DRIVER_CHANGE"] = pd.to_numeric(df["DRIVER_CHANGE"], errors='coerce').astype('Int64')
     df['TRAINNUMBER'] = df['TRAINNUMBER'].astype(str)
@@ -13,16 +14,19 @@ def set_types(df):
 
     return df
 
+# sort df by 'TRAFFIC_DATE', 'TRAINNUMBER' and 'PLAN_DATETIME'
 def sort(df):
     df = df.sort_values(by=['TRAFFIC_DATE', 'TRAINNUMBER','PLAN_DATETIME'], ignore_index=True)
 
     return df
 
+# add column 'CUM_DISTANCE_M' which is the cumulative distance per train
 def cum_distance(df):
     df['CUM_DISTANCE_M'] = df.groupby(['TRAFFIC_DATE', 'TRAINNUMBER'])['DISTANCE_M'].cumsum()
 
     return df
 
+# calculate turnover time at the end of the traject
 def calc_turnover_end(df):
     # Create dataframe with rows where there is a turnover and previous trains are valid
     df_turnover = df.loc[(df["TURNOVER_INDICATOR"] == 1)]
@@ -61,6 +65,7 @@ def calc_turnover_end(df):
 
     return filtered_df
 
+# calculate turnover time for stations in the middle of the traject
 def calc_turnover_middle(df):
     # Arrivals of previous rows
     plan_previous_row_arrival = df['PLAN_DATETIME'].shift(1)
@@ -80,9 +85,11 @@ def calc_turnover_middle(df):
 
     return df_nan
 
+# add turnover time to df
 def calc_turnover(df):
     return pd.concat([calc_turnover_middle(df), calc_turnover_end(df)])
 
+# calculate the needed turnover time for each train
 def calc_needed_turnover(df):
     df["NEEDED_PLAN_TURNOVER_TIME"] = df["PLAN_TURNOVER_TIME"] + 60 - df["DELAY"]
     df["NEEDED_REALIZED_TURNOVER_TIME"] = df["REALIZED_TURNOVER_TIME"] + 60 - df["DELAY"]
@@ -175,6 +182,7 @@ def determine_daluren(df):
 
   return temp
 
+# add columns for day of week and hour of day
 def days_and_hours(df):
     df["DAY_OF_WEEK"] = df["PLAN_DATETIME"].dt.dayofweek
     df["HOUR"] = df["PLAN_DATETIME"].dt.hour
@@ -190,6 +198,7 @@ def cyclical_encoder(df, column):
 
     return df
 
+# add category for difference in turnover time
 def add_cat_diff_turnover_time(df):
   working_df = df.copy()
   # calculate difference in needed_plan_turnover_time and needed_realized_turnover_time
