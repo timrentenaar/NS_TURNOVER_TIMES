@@ -291,20 +291,3 @@ def add_cat_diff_turnover_time(df):
 
 def remove_past_3_min(df):
     return df[df["DIFF_TURNOVER_TIME"] <= 180]
-
-
-def mae():
-    # Calculates the MAE of the NS method
-    df["MAE"] = df["PLAN_TURNOVER_TIME"] - df["REALIZED_TURNOVER_TIME"]
-    df["MAE"] = abs(df["MAE"])
-    mean = df.loc[:, "MAE"].mean()
-    df.drop(["MAE"], axis=1, inplace=True)
-    return mean
-
-
-def turnover_delay(row):
-    # Categorizes whether something is a turnover or a delay
-    if row["REALIZED_TURNOVER_TIME"] >= 900:
-        return "Delay"
-    else:
-        return "Turnover"
