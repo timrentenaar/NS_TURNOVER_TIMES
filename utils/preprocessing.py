@@ -288,15 +288,14 @@ def add_cat_diff_turnover_time(df):
 
     return working_df
 
-
-def remove_outliers(df):
+def filter_more_outliers(df):
     temp = df.copy()
 
     # remove trains that leave more than 3 minutes too late or early
     temp =  temp[temp["DIFF_TURNOVER_TIME"].between(-180, 180)]
 
     # remove trains that have more than 2500s turnover time
-    temp = temp[~temp["REALIZED_TURNOVER_TIME"] >= 2500]
+    temp = temp[~(temp["REALIZED_TURNOVER_TIME"] >= 2500)]
 
     # remove trains that have a realized turnover time of less than 120s
     temp = temp[temp["REALIZED_TURNOVER_TIME"] >= 120]
@@ -304,7 +303,9 @@ def remove_outliers(df):
     return temp
 
 
-def split_data(df):
+
+
+def split_data_in_segments(df):
     # split data into 0-900, 900-2000, 2000-2500
     df_0_900 = df[df["REALIZED_TURNOVER_TIME"] <= 900]
     df_900_2000 = df[
