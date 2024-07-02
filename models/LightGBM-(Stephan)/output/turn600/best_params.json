@@ -1,0 +1,1 @@
+{"random_state": 1, "n_estimators": 500, "learning_rate": 0.01, "feature_fraction": 1.0, "bagging_fraction": 0.8784205989120056, "bagging_freq": 5, "max_depth": 10, "num_leaves": 283, "min_data_in_leaf": 10, "min_gain_to_split": 7, "lambda_l1": 55, "lambda_l2": 0}
